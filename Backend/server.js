@@ -7,7 +7,8 @@ require('dotenv').config();//.env to store sensitive info (DB creds)
 const app = express();//init express as app (defines middleware, routing, server settings)
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));//app allow 3000 to talk to 5000
 app.use(express.json());//app parse requests with json payloads for react to read (lightweight & default format).
-//app.use is essentially a pipeline for requests or code gets messy
+
+//app.use is essentially a pipeline for requests or else code gets messy
 
 const pool = mysql.createPool({//create mysql connection pool (to reuse connections, better performance, more doors open)
   host: process.env.DB_HOST || 'localhost',
@@ -99,6 +100,16 @@ app.get('/api/users/:userId/appointments', (req, res) => {
 app.post('/api/appointments', (req, res) => {
   const { user_id, vehicle_id, service_type, appointment_date, appointment_time, notes, urgency, workshop_id } = req.body;//destructure appointment data from req body
   const formattedTime = convertTo24Hour(appointment_time);//convert to 24hr format
+  const selectedDate = new Date(appointment_date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (selectedDate < today) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "You cannot schedule an appointment in the past." 
+    });
+  }
   const query = `INSERT INTO appointments (user_id, vehicle_id, service_type, appointment_date, appointment_time, notes, status, urgency, workshop_id) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)`;
   pool.query(query, [user_id, vehicle_id, service_type, appointment_date, formattedTime, notes || '', urgency || 'normal', workshop_id || null], (err, result) => {
     if (err) return res.status(500).json({ success: false });//500 error if mysql crash/issue
