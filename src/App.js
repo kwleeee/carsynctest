@@ -28,7 +28,8 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import HistoryIcon from '@mui/icons-material/History';
 import SecurityIcon from '@mui/icons-material/Security';
 import LogoutIcon from '@mui/icons-material/Logout';
-import BuildIcon from '@mui/icons-material/Build'; // Icon for Mechanic
+import BuildIcon from '@mui/icons-material/Build'; 
+import InventoryIcon from '@mui/icons-material/Inventory'; // ✅ Added Inventory Icon
 
 // Pages & Components
 import Dashboard from './pages/Dashboard';
@@ -40,7 +41,8 @@ import Register from './pages/Register';
 import RoleBadge from './components/roleBadge';
 import Appointments from './pages/Appointments';
 import Invoices from './pages/Invoice';
-import MechanicDashboard from './pages/MechanicDashboard'; // Import new page
+import MechanicDashboard from './pages/MechanicDashboard';
+import Inventory from './pages/Inventory'; // ✅ Added Inventory Page Import
 
 const appleTheme = createTheme({
   palette: {
@@ -57,7 +59,7 @@ const appleTheme = createTheme({
   shape: { borderRadius: 12 },
 });
 
-const ProtectedRoute = ({ children }) => {//check for user in localstorage
+const ProtectedRoute = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -76,20 +78,20 @@ const ProtectedRoute = ({ children }) => {//check for user in localstorage
   return isLoggedIn ? children : <Navigate to="/login" />;
 };
 
-const Layout = ({ children }) => {//for role based nav items
+const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');//retrieve user data from localstorage
-    if (userData) setUser(JSON.parse(userData));//convert to json
-  }, []);//run once
+    const userData = localStorage.getItem('user');
+    if (userData) setUser(JSON.parse(userData));
+  }, []);
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
-      localStorage.clear();// clear all localstorage data
-      navigate('/login');//navigate to login page
+      localStorage.clear();
+      navigate('/login');
     }
   };
 
@@ -99,13 +101,15 @@ const Layout = ({ children }) => {//for role based nav items
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <HomeIcon /> },
     { path: '/vehicles', label: 'Vehicles', icon: <DirectionsCarIcon /> },
-    { path: '/maintenance', label: 'Service Records', icon: <HistoryIcon /> },
+    { path: '/maintenance', label: 'Maintenance', icon: <HistoryIcon /> },
     { path: '/appointments', label: 'Appointments', icon: <CalendarTodayIcon /> },
     { path: '/invoices', label: 'Invoices', icon: <ReceiptIcon /> },
   ];
 
+  // ✅ THIS SECTION ADDS THE BUTTON TO THE MENU
   if (isMechanic) {
     navItems.push({ path: '/mechanic-dashboard', label: 'Workshop Panel', icon: <BuildIcon /> });
+    navItems.push({ path: '/inventory', label: 'Parts Inventory', icon: <InventoryIcon /> }); 
   }
 
   if (isAdmin) {
@@ -130,7 +134,7 @@ const Layout = ({ children }) => {//for role based nav items
           <Box sx={{ width: 32, height: 32, borderRadius: 1, backgroundColor: '#ff2d55', display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1.5 }}>
             <DirectionsCarIcon sx={{ color: '#fff', fontSize: 20 }} />
           </Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.5px' }}>CarSync</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.5px' }}>CarSync</Typography>
         </Box>
 
         <Box sx={{ flex: 1 }}>
@@ -165,7 +169,6 @@ const Layout = ({ children }) => {//for role based nav items
             </Avatar>
             <Box sx={{ flex: 1, overflow: 'hidden' }}>
               <Typography variant="subtitle2" noWrap sx={{ fontWeight: 600 }}>
-               {/* Priority: firstName > full_name (split) > "User" */}
                {user?.firstName || (user?.full_name ? user.full_name.split(' ')[0] : 'User')}
               </Typography>
               <RoleBadge role={user?.user_type || user?.role} />
@@ -207,6 +210,7 @@ function App() {
                   <Route path="/appointments" element={<Appointments />} />
                   <Route path="/invoices" element={<Invoices />} />
                   <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
+                  <Route path="/inventory" element={<Inventory />} /> {/* ✅ Route for Inventory */}
                   <Route path="/admin" element={<AdminPanel />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
